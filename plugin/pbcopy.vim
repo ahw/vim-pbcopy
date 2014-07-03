@@ -24,8 +24,13 @@ endfunction
 
 function! s:sendTextToPbCopy(text)
     try
-        " Call the UNIX echo command. The -n means do not output trailing newline.
-        execute "silent !echo -n " . a:text . " | ssh " . g:VimPbcopyHost . " " . g:VimPbcopyCmd
+        if len($SSH_CLIENT)
+            " Call the UNIX echo command. The -n means do not output trailing newline.
+            execute "silent !echo -n " . a:text . " | ssh " . g:VimPbcopyHost . " " . g:VimPbcopyCmd
+        else
+            " Call the UNIX echo command. The -n means do not output trailing newline.
+            execute "silent !echo -n " . a:text . " | " . g:VimPbcopyCmd
+        endif
         redraw! " Fix up the screen
         return 0
     catch /E121/
