@@ -17,18 +17,39 @@ then simply copy and paste:
     cd ~/.vim/bundle
     git clone https://github.com/ahw/vim-pbcopy.git
 
-**You must also set the g:VimPbcopyHost variable in your `~/.vimrc` file.**
+**You must also set the `g:vim_pbcopy_host` variable in your `~/.vimrc` file.**
 
 > **~/.vimrc**
 >
 > ```vim
-> let g:VimPbcopyHost = "your-mac-laptop.example.com"
+> let g:vim_pbcopy_host = "your-mac-laptop.example.com"
 > ```
 
 Local Usage
 -----------
-> TODO
+Use `cy{motion}` to copy text to the Mac OSX system clipboard or hit `cy`
+after selecting text in Visual mode. In the background it is simply running
+running 
+
+```sh
+echo -n "whatever text you copied" | pbcopy
+```
 
 Remote Usage
 ------------
-> TODO
+Nothing changes except you need to set the Vim global variable
+`g:vim_pbcopy_host` variable in your `~/.vimrc` file. E.g., something like
+
+```vim
+let g:vim_pbcopy_host = "your-mac-laptop.example.com"
+```
+In the background it pipes the copied text to your Mac client's `pbcopy`
+over SSH.
+
+```sh
+echo -n "whatever text you copied" | ssh your-mac-laptop.example.com pbcopy
+```
+
+This assumes that you have an SSH server running on your laptop, of course.
+Note: I haven't tested this using password-based SSH logins (my
+configuration uses SSH keys).

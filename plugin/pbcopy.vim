@@ -1,7 +1,8 @@
-" let g:VimPbcopyHost = "mac-laptop"
-let g:VimPbcopyCmd = "pbcopy"
+" let g:vim_pbcopy_host = "mac-laptop"
+let g:vim_pbcopy_cmd = "pbcopy"
 
-vnoremap <silent> cy :<C-U>call <SID>copyVisualSelection()<CR>
+vnoremap <silent> cy :<C-U>call <SID>copyVisualSelection(visualmode(), 1)<CR>
+nnoremap <silent> cy :set opfunc=<SID>copyVisualSelection<CR>g@
 
 function! s:getVisualSelection()
     let [lnum1, col1] = getpos("'<")[1:2]
@@ -26,28 +27,42 @@ function! s:sendTextToPbCopy(text)
     try
         if len($SSH_CLIENT)
             " Call the UNIX echo command. The -n means do not output trailing newline.
-            execute "silent !echo -n " . a:text . " | ssh " . g:VimPbcopyHost . " " . g:VimPbcopyCmd
+            execute "silent !echo -n " . a:text . " | ssh " . g:vim_pbcopy_host . " " . g:vim_pbcopy_cmd
         else
             " Call the UNIX echo command. The -n means do not output trailing newline.
-            execute "silent !echo -n " . a:text . " | " . g:VimPbcopyCmd
+            execute "silent !echo -n " . a:text . " | " . g:vim_pbcopy_cmd
         endif
         redraw! " Fix up the screen
         return 0
     catch /E121/
         " Undefined variable error
         echohl WarningMsg
-        echom "Please set g:VimPbcopyHost in your ~/.vimrc with something like: 'let g:VimPbcopyHost = \"hostname.example.com\"'"
+        echom "Please set g:vim_pbcopy_host in your ~/.vimrc with something like: 'let g:vim_pbcopy_host = \"hostname.example.com\"'"
         echohl None
         return 1
     endtry
 endfunction
 
-function! s:copyVisualSelection()
-    let lines = s:getVisualSelection()
+function! s:copyVisualSelection(type, ...)
+    let sel_save = &selection
+    let &selection = "inclusive"
+    let reg_save = @@
+
+    if a:0  " Invoked from Visual mode, use '< and '> marks.
+      silent exe "normal! `<" . a:type . "`>y"
+    elseif a:type == 'line'
+      silent exe "normal! '[V']y"
+    elseif a:type == 'block'
+      silent exe "normal! `[\<C-V>`]y"
+    else
+      silent exe "normal! `[v`]y"
+    endif
+
+    let lines = split(@@, "\n")
     let escapedLines = s:getShellEscapedLines(lines)
     let error =  s:sendTextToPbCopy(escapedLines)
-    if !error
-        " Note: gv selects the previous visual selection again
-        execute "normal! gvy"
-    endif
+
+    " Reset the selection and register contents
+    let &selection = sel_save
+    let @@ = reg_save
 endfunction
