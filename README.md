@@ -1,12 +1,13 @@
 vim-pbcopy
 ==========
-This is a Vim plugin that exposes a `cy` mapping in VISUAL mode which
-attempts to pipe the visual selection (via `ssh` if necessary) to the
+This is a Vim plugin that exposes a `cy` mapping in Visual mode and a
+`cy{motion}` mapping in Normal mode which both attempt to yank the
+selected/moved-over text and pipe it (via `ssh` if necessary) to the
 `pbcopy` command on a Mac OS X client. What does this mean? It means you can
-visually select a block of text in Vim, hit `cy`, and have the text
-available in your Mac OS X system clipboard. It also performs a simple `y`
-yank operation on the same visual selection so you'll have it in the default
-`"` yank register as well.
+use `cy` wherever you'd normally use `y` and have that text available in
+your Mac OS X system clipboard, whether you're working locally or remotely.
+It also performs a simple `y` yank operation on your selection so you'll
+have it in the default `"` yank register as well.
 
 Installation
 ------------
