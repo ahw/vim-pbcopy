@@ -18,13 +18,6 @@ then simply copy and paste:
     cd ~/.vim/bundle
     git clone https://github.com/ahw/vim-pbcopy.git
 
-**You must also set the `g:vim_pbcopy_host` variable in your `~/.vimrc` file.**
-
-> **~/.vimrc**
->
-> ```vim
-> let g:vim_pbcopy_host = "your-mac-laptop.example.com"
-> ```
 
 Local Usage
 -----------
@@ -39,11 +32,14 @@ echo -n "whatever text you copied" | pbcopy
 Remote Usage
 ------------
 Nothing changes except you need to set the Vim global variable
-`g:vim_pbcopy_host` variable in your `~/.vimrc` file. E.g., something like
+`g:vim_pbcopy_host` variable in your `~/.vimrc` file.
 
-```vim
-let g:vim_pbcopy_host = "your-mac-laptop.example.com"
-```
+> **~/.vimrc**
+>
+> ```vim
+> let g:vim_pbcopy_host = "your-mac-laptop.example.com"
+> ```
+
 In the background it pipes the copied text to your Mac client's `pbcopy`
 over SSH.
 
