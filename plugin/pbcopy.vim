@@ -20,17 +20,17 @@ function! s:getShellEscapedLines(listOfLines)
     " Vim. See :help shellescape. We need this because otherwise execute"
     " will replace "!" with the previously-executed command and chaos will
     " ensue.
-    return shellescape(join(a:listOfLines, '\n'), 1)
+    return shellescape(join(a:listOfLines, "\n"), 1)
 endfunction
 
-function! s:sendTextToPbCopy(text)
+function! s:sendTextToPbCopy(escapedText)
     try
         if len($SSH_CLIENT)
             " Call the UNIX echo command. The -n means do not output trailing newline.
-            execute "silent !echo -n " . a:text . " | ssh " . g:vim_pbcopy_host . " " . g:vim_pbcopy_cmd
+            execute "silent !echo -n " . a:escapedText . " | ssh " . g:vim_pbcopy_host . " " . g:vim_pbcopy_cmd
         else
             " Call the UNIX echo command. The -n means do not output trailing newline.
-            execute "silent !echo -n " . a:text . " | " . g:vim_pbcopy_cmd
+            execute "silent !echo -n " . a:escapedText . " | " . g:vim_pbcopy_cmd
         endif
         redraw! " Fix up the screen
         return 0
