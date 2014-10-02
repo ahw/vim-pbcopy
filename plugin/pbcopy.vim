@@ -13,6 +13,14 @@ function! s:getVisualSelection()
     return lines
 endfunction
 
+function! s:isRunningLocally()
+    if len($SSH_CLIENT)
+        return 1
+    else
+        return 0
+    endif
+endfunction
+
 function! s:getShellEscapedLines(listOfLines)
     " Join the lines with the literal characters '\n' (two chars) so that
     " they will be echo-ed correctly. Passing a non-zero second argument to
@@ -20,12 +28,20 @@ function! s:getShellEscapedLines(listOfLines)
     " Vim. See :help shellescape. We need this because otherwise execute"
     " will replace "!" with the previously-executed command and chaos will
     " ensue.
-    return shellescape(join(a:listOfLines, "\n"), 1)
+    "
+    " Also, for whatever reason Mac OSX is handling backslashes in a very
+    " odd way that I can't quite get my head around. If we're running
+    " locally on Mac OSX then just join lines with "\n". If we're running
+    " remotely then escape backslashes (tested on Ubuntu).
+    if isRunningLocally()
+        return shellescape(join(a:listOfLines, "\n"), 1)
+    else
+        return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
 endfunction
 
 function! s:sendTextToPbCopy(escapedText)
     try
-        if len($SSH_CLIENT)
+        if s:isRunningLocally()
             " Call the UNIX echo command. The -n means do not output trailing newline.
             execute "silent !echo -n " . a:escapedText . " | ssh " . g:vim_pbcopy_host . " " . g:vim_pbcopy_cmd
         else
