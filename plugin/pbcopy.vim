@@ -15,9 +15,9 @@ endfunction
 
 function! s:isRunningLocally()
     if len($SSH_CLIENT)
-        return 1
-    else
         return 0
+    else
+        return 1
     endif
 endfunction
 
@@ -33,20 +33,21 @@ function! s:getShellEscapedLines(listOfLines)
     " odd way that I can't quite get my head around. If we're running
     " locally on Mac OSX then just join lines with "\n". If we're running
     " remotely then escape backslashes (tested on Ubuntu).
-    if isRunningLocally()
+    if s:isRunningLocally()
         return shellescape(join(a:listOfLines, "\n"), 1)
     else
         return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
+    endif
 endfunction
 
 function! s:sendTextToPbCopy(escapedText)
     try
         if s:isRunningLocally()
             " Call the UNIX echo command. The -n means do not output trailing newline.
-            execute "silent !echo -n " . a:escapedText . " | ssh " . g:vim_pbcopy_host . " " . g:vim_pbcopy_cmd
+            execute "silent !echo -n " . a:escapedText . " | " . g:vim_pbcopy_cmd
         else
             " Call the UNIX echo command. The -n means do not output trailing newline.
-            execute "silent !echo -n " . a:escapedText . " | " . g:vim_pbcopy_cmd
+            execute "silent !echo -n " . a:escapedText . " | ssh " . g:vim_pbcopy_host . " " . g:vim_pbcopy_cmd
         endif
         redraw! " Fix up the screen
         return 0
