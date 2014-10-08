@@ -50,3 +50,7 @@ echo -n "whatever text you copied" | ssh your-mac-laptop.example.com pbcopy
 This assumes that you have an SSH server running on your laptop, of course.
 Note: I haven't tested this using password-based SSH logins (my
 configuration uses SSH keys).
+
+Related Projects
+================
+[clipper](https://github.com/wincent/clipper): "Clipper is an OS X 'launch agent' that runs in the background providing a service that exposes the local clipboard to tmux sessions and other processes running both locally and remotely. ... We can use it from any process, including Vim" (source: the **clipper** README). This seems like a good solution for the case where you do not have reverse SSH access from a remote host to your Mac client. Tracking the work to support this in https://github.com/ahw/vim-pbcopy/issues/5.
