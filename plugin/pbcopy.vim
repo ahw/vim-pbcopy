@@ -34,8 +34,16 @@ function! s:getShellEscapedLines(listOfLines)
     " locally on Mac OSX then just join lines with "\n". If we're running
     " remotely then escape backslashes (tested on Ubuntu).
     " return shellescape(join(a:listOfLines, "\n"), 1)
+
     " THIS WORKS WHEN SSH-ED INTO RHEL
-    return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
+    " return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
+
+    " Original content
+    if s:isRunningLocally()
+        return shellescape(join(a:listOfLines, "\n"), 1)
+    else
+        return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
+    endif
 endfunction
 
 function! s:sendTextToPbCopy(escapedText)
