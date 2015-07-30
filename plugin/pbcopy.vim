@@ -33,11 +33,9 @@ function! s:getShellEscapedLines(listOfLines)
     " odd way that I can't quite get my head around. If we're running
     " locally on Mac OSX then just join lines with "\n". If we're running
     " remotely then escape backslashes (tested on Ubuntu).
-    if s:isRunningLocally()
-        return shellescape(join(a:listOfLines, "\n"), 1)
-    else
-        return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
-    endif
+    " return shellescape(join(a:listOfLines, "\n"), 1)
+    " THIS WORKS WHEN SSH-ED INTO RHEL
+    return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
 endfunction
 
 function! s:sendTextToPbCopy(escapedText)
@@ -81,5 +79,5 @@ function! s:copyVisualSelection(type, ...)
 
     " Reset the selection and register contents
     let &selection = sel_save
-    let @@ = reg_save
+    " let @@ = reg_save
 endfunction
