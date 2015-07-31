@@ -28,20 +28,36 @@ function! s:getShellEscapedLines(listOfLines)
     " Vim. See :help shellescape. We need this because otherwise execute"
     " will replace "!" with the previously-executed command and chaos will
     " ensue.
-    "
-    " Also, for whatever reason Mac OSX is handling backslashes in a very
-    " odd way that I can't quite get my head around. If we're running
-    " locally on Mac OSX then just join lines with "\n". If we're running
-    " remotely then escape backslashes (tested on Ubuntu).
-    " return shellescape(join(a:listOfLines, "\n"), 1)
-
-    " THIS WORKS WHEN SSH-ED INTO RHEL
-    " return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
 
     " Original content
+    " Note there is very weird behavior when attempting to copy a line which
+    " contains the literal character \n. Example:
+    "
+    "   console.log('hello\nthere');
+    "
+
+    if exists("g:vim_pbcopy_escape_backslashes") && g:vim_pbcopy_escape_backslashes
+        " Global override is set and is truthy
+        echom "[vim-pbcopy debug] forcing shellescape(escape(...))"
+        return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
+    elseif exists("g:vim_pbcopy_escape_backslashes")
+        " Global override is set and is falsey
+        echom "[vim-pbcopy debug] forcing shellescape(...)"
+        return shellescape(join(a:listOfLines, "\n"), 1)
+    endif
+
     if s:isRunningLocally()
+        " echom "[vim-pbcopy debug] shellescape(escape(...))"
+        " return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
+
+        " Confirmed working on Mac OS X Yosemite
+        echom "[vim-pbcopy debug] shellescape(...)"
         return shellescape(join(a:listOfLines, "\n"), 1)
     else
+        " So far works on all Linux distros I've used. Assuming that when
+        " Vim is not running locally it's because you're SSH-ing into a
+        " Linux host.
+        echom "[vim-pbcopy debug] shellescape(escape(...))"
         return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
     endif
 endfunction

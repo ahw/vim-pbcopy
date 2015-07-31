@@ -51,6 +51,35 @@ This assumes that you have an SSH server running on your laptop, of course.
 Note: I haven't tested this using password-based SSH logins (my
 configuration uses SSH keys).
 
+Troubleshooting
+---------------
+
+### Problems with Newlines
+There are some inconsistencies around the way backslashes are escaped on
+different systems. Try copying some text with `\` and `\n` characters. If
+you're getting incorrect output when you then try to paste that text somewhere,
+see the table below for how to remedy.
+
+
+If you copied this          | and pasted this               | add this to ~/.vimrc
+---                         | ---                           | ---
+console.log('some\nthing'); | console.log('some\nthing');   | Nothing! It Just Works&trade;
+console.log('some\nthing'); | console.log('some<br>thing'); | `let g:vim_pbcopy_escape_backslashes = 1`
+console.log('some\nthing'); | console.log('some\\\nthing'); | `let g:vim_pbcopy_escape_backslashes = 0`
+
+
 Related Projects
 ================
-[clipper](https://github.com/wincent/clipper): "Clipper is an OS X 'launch agent' that runs in the background providing a service that exposes the local clipboard to tmux sessions and other processes running both locally and remotely. ... We can use it from any process, including Vim" (source: the **clipper** README). This seems like a good solution for the case where you do not have reverse SSH access from a remote host to your Mac client. Tracking the work to support this in https://github.com/ahw/vim-pbcopy/issues/5.
+
+### [clipper](https://github.com/wincent/clipper)
+
+> Clipper is an OS X 'launch agent' that runs in the background providing a
+> service that exposes the local clipboard to tmux sessions and other
+> processes running both locally and remotely. ... We can use it from any
+> process, including Vim
+>
+> Source: https://github.com/wincent/clipper/blob/master/README.md
+
+A more robust solution that isn't necessarily tied to Vim but happens to
+work well with it. It handles the case where you do not have reverse SSH
+access from a remote host to your Mac client.
