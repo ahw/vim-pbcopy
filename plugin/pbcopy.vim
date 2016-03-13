@@ -1,5 +1,28 @@
-" let g:vim_pbcopy_host = "mac-laptop"
+" Helper function to determine if Vim is running locally or if this is an
+" SSH session.
+function! s:isRunningLocally()
+    if len($SSH_CLIENT)
+        return 0
+    else
+        return 1
+    endif
+endfunction
+
+function! s:getVimPbCopyProtocol()
+    if exists("g:vim_pbcopy_protocol")
+        return g:vim_pbcopy_protocol
+    elseif isRunningLocally()
+        return "local"
+    else
+        return "ssh"
+    endif
+endfunction
+
+" let g:vim_pbcopy_ssh_host = "mac-laptop"
+" let g:vim_pbcopy_ssh_port = 22
 let g:vim_pbcopy_cmd = "pbcopy"
+
+let g:vim_pbcopy_http_request = "curl -X POST -H 'Content-Type: text/plain' http://localhost:7700/pbcopy --data-urlencode @-"
 
 vnoremap <silent> cy :<C-U>call <SID>copyVisualSelection(visualmode(), 1)<CR>
 nnoremap <silent> cy :set opfunc=<SID>copyVisualSelection<CR>g@
@@ -13,13 +36,6 @@ function! s:getVisualSelection()
     return lines
 endfunction
 
-function! s:isRunningLocally()
-    if len($SSH_CLIENT)
-        return 0
-    else
-        return 1
-    endif
-endfunction
 
 function! s:getShellEscapedLines(listOfLines)
     " Join the lines with the literal characters '\n' (two chars) so that
@@ -29,54 +45,66 @@ function! s:getShellEscapedLines(listOfLines)
     " will replace "!" with the previously-executed command and chaos will
     " ensue.
 
-    " Original content
-    " Note there is very weird behavior when attempting to copy a line which
+    " Note there is very behavior when attempting to copy a line which
     " contains the literal character \n. Example:
     "
     "   console.log('hello\nthere');
-    "
 
     if exists("g:vim_pbcopy_escape_backslashes") && g:vim_pbcopy_escape_backslashes
         " Global override is set and is truthy
         echom "[vim-pbcopy debug] forcing shellescape(escape(...))"
         return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
+
     elseif exists("g:vim_pbcopy_escape_backslashes")
         " Global override is set and is falsey
         echom "[vim-pbcopy debug] forcing shellescape(...)"
         return shellescape(join(a:listOfLines, "\n"), 1)
-    endif
 
-    if s:isRunningLocally()
-        " echom "[vim-pbcopy debug] shellescape(escape(...))"
-        " return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
+    elseif s:isRunningLocally()
+        " No global override set. We are running locally as determined by
+        " the above helper function so we can make an educated guess that
+        " escape() does NOT need to be invoked.
 
         " Confirmed working on Mac OS X Yosemite
         echom "[vim-pbcopy debug] shellescape(...)"
         return shellescape(join(a:listOfLines, "\n"), 1)
+
     else
-        " So far works on all Linux distros I've used. Assuming that when
-        " Vim is not running locally it's because you're SSH-ing into a
-        " Linux host.
+        " No global override set. We are NOT running locally which
+        " *probably* means the user is SSH-ed in to a Linux host. We can
+        " make an educated guess that escape() DOES need to be called here.
+        " So far works on all Linux distros I've used.
         echom "[vim-pbcopy debug] shellescape(escape(...))"
         return shellescape(escape(join(a:listOfLines, "\n"), '\'), 1)
     endif
+
 endfunction
 
 function! s:sendTextToPbCopy(escapedText)
     try
-        if s:isRunningLocally()
+        echom "[vim-pbcopy debug] g:vim_pbcopy_protocol == \"" . s:getVimPbCopyProtocol() . "\""
+        if s:getVimPbCopyProtocol() == "local"
+            " If running locally we assume protocol == "local"
+            " TODO: Don't do this. Allow users to use whatever protocol
+            " whether running locally or not.
+
             " Call the UNIX echo command. The -n means do not output trailing newline.
             execute "silent !echo -n " . a:escapedText . " | " . g:vim_pbcopy_cmd
-        else
+
+        elseif s:getVimPbCopyProtocol() == "ssh"
             " Call the UNIX echo command. The -n means do not output trailing newline.
             execute "silent !echo -n " . a:escapedText . " | ssh " . g:vim_pbcopy_host . " " . g:vim_pbcopy_cmd
+
+        elseif s:getVimPbCopyProtocol() == "http"
+            echom "[vim-pbcopy debug] No implementation yet for \"http\" protocol!"
+
         endif
         redraw! " Fix up the screen
         return 0
     catch /E121/
         " Undefined variable error
         echohl WarningMsg
-        echom "Please set g:vim_pbcopy_host in your ~/.vimrc with something like: 'let g:vim_pbcopy_host = \"hostname.example.com\"'"
+        echom "[vim-pbcopy] If using the \"ssh\" protocol please set g:vim_pbcopy_host in your ~/.vimrc with something like: let g:vim_pbcopy_host = \"hostname.example.com\""
         echohl None
         return 1
     endtry
