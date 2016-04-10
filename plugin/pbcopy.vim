@@ -1,5 +1,4 @@
-" let g:vim_pbcopy_host = "mac-laptop"
-let g:vim_pbcopy_cmd = "pbcopy"
+let g:vim_pbcopy_local_cmd = "pbcopy"
 
 vnoremap <silent> cy :<C-U>call <SID>copyVisualSelection(visualmode(), 1)<CR>
 nnoremap <silent> cy :set opfunc=<SID>copyVisualSelection<CR>g@
@@ -66,17 +65,17 @@ function! s:sendTextToPbCopy(escapedText)
     try
         if s:isRunningLocally()
             " Call the UNIX echo command. The -n means do not output trailing newline.
-            execute "silent !echo -n " . a:escapedText . " | " . g:vim_pbcopy_cmd
+            execute "silent !echo -n " . a:escapedText . " | " . g:vim_pbcopy_local_cmd
         else
             " Call the UNIX echo command. The -n means do not output trailing newline.
-            execute "silent !echo -n " . a:escapedText . " | ssh " . g:vim_pbcopy_host . " " . g:vim_pbcopy_cmd
+            execute "silent !echo -n " . a:escapedText . " | " . g:vim_pbcopy_remote_cmd
         endif
         redraw! " Fix up the screen
         return 0
     catch /E121/
         " Undefined variable error
         echohl WarningMsg
-        echom "Please set g:vim_pbcopy_host in your ~/.vimrc with something like: 'let g:vim_pbcopy_host = \"hostname.example.com\"'"
+        echom "Please set g:vim_pbcopy_remote_cmd in your ~/.vimrc with something like: 'let g:vim_pbcopy_remote_cmd = \"ssh hostname.example.com pbcopy\"'"
         echohl None
         return 1
     endtry

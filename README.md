@@ -29,19 +29,28 @@ running
 echo -n "whatever text you copied" | pbcopy
 ```
 
-Remote Usage
-------------
-Nothing changes except you need to set the Vim global variable
-`g:vim_pbcopy_host` variable in your `~/.vimrc` file.
+You can configure the local pbcopy command in your `~/.vimrc` file:
 
 > **~/.vimrc**
 >
 > ```vim
-> let g:vim_pbcopy_host = "your-mac-laptop.example.com"
+> let g:vim_pbcopy_local_cmd = "pbcopy"
 > ```
 
-In the background it pipes the copied text to your Mac client's `pbcopy`
-over SSH.
+
+Remote Usage
+------------
+Nothing changes except you need to set the Vim global variable
+`g:vim_pbcopy_remote_cmd` variable in your `~/.vimrc` file to your preferred
+way of running pbcopy on your local machine.
+
+> **~/.vimrc**
+>
+> ```vim
+> let g:vim_pbcopy_remote_cmd = "ssh your-mac-laptop.example.com pbcopy"
+> ```
+
+This will pipe the copied text to your Mac client's `pbcopy` over SSH.
 
 ```sh
 echo -n "whatever text you copied" | ssh your-mac-laptop.example.com pbcopy
@@ -50,6 +59,8 @@ echo -n "whatever text you copied" | ssh your-mac-laptop.example.com pbcopy
 This assumes that you have an SSH server running on your laptop, of course.
 Note: I haven't tested this using password-based SSH logins (my
 configuration uses SSH keys).
+
+See section `Related Projects` below for other remote usage possiblities. 
 
 Troubleshooting
 ---------------
@@ -80,6 +91,38 @@ Related Projects
 >
 > Source: https://github.com/wincent/clipper/blob/master/README.md
 
-A more robust solution that isn't necessarily tied to Vim but happens to
-work well with it. It handles the case where you do not have reverse SSH
-access from a remote host to your Mac client.
+`cipper` listens to a select localhost port, and put all input in the system
+clipboard.
+This is useful for both local and remote use: locally, using `clipper` rather 
+than `pbcopy` circumvents known problems with `pbcopy` and `tmux`. 
+Remotely, you can forward a remote port to the local clipper's port via an
+ssh reverse tunnel. 
+
+To this end, set up a reverse tunnel in your `~/.ssh/config`:
+
+> **~/.ssh/config**
+>
+> ```
+> Host my.remote.host
+>   RemoteForward 8377 localhost:8377
+> ```
+
+Alternatively, ssh with `-R`:
+
+```sh
+$ ssh -R 8377 my.remote.host
+```
+
+Then pipe vim selection to localhost:8377. 
+> **~/.vimrc**
+>
+> ```vim
+> let g:vim_pbcopy_local_cmd = "cat > /dev/tcp/localhost/8377"
+> let g:vim_pbcopy_remote_cmd = "cat > /dev/tcp/localhost/8377"
+> ```
+
+
+
+
+
+
