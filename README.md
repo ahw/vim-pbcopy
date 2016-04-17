@@ -91,14 +91,13 @@ Related Projects
 >
 > Source: https://github.com/wincent/clipper/blob/master/README.md
 
-`cipper` listens to a select localhost port, and put all input in the system
-clipboard.
-This is useful for both local and remote use: locally, using `clipper` rather 
-than `pbcopy` circumvents known problems with `pbcopy` and `tmux`. 
-Remotely, you can forward a remote port to the local clipper's port via an
-ssh reverse tunnel. 
+Clipper listens for tcp data on a select localhost port, and puts all
+input it receipes on the system clipboard. This is useful for both local and
+remote use. Locally, using clipper rather than `pbcopy` circumvents known
+problems with `pbcopy` and `tmux`. Remotely, you can forward a remote port
+to the local clipper's port via an ssh reverse tunnel. 
 
-To this end, set up a reverse tunnel in your `~/.ssh/config`:
+To user Clipper, first set up a reverse tunnel in your `~/.ssh/config`:
 
 > **~/.ssh/config**
 >
@@ -113,16 +112,11 @@ Alternatively, ssh with `-R`:
 $ ssh -R 8377 my.remote.host
 ```
 
-Then pipe vim selection to localhost:8377. 
+Then pipe Vim's selection to localhost:8377:
+
 > **~/.vimrc**
 >
 > ```vim
 > let g:vim_pbcopy_local_cmd = "cat > /dev/tcp/localhost/8377"
 > let g:vim_pbcopy_remote_cmd = "cat > /dev/tcp/localhost/8377"
 > ```
-
-
-
-
-
-
