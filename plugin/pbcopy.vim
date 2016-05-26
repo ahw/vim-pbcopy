@@ -20,6 +20,36 @@ function! s:isRunningLocally()
     endif
 endfunction
 
+function! s:getTransformedLine(line)
+    let transforms = {}
+    if exists("g:vim_pbcopy_regex_transforms")
+        let transforms = g:vim_pbcopy_regex_transforms
+    endif
+
+    for key in keys(transforms)
+        echom "[getTransformedLine] line: <" . a:line . ">"
+        echom "[getTransformedLine] match expression: " . key . ", regex transform: " . transforms[key]
+        if a:line =~ key
+            let a = substitute(a:line, key, transforms[key], "")
+            echom "[getTransformedLine] tranformed line: " . a
+        endif
+    endfor
+
+    return a:line
+endfunction
+
+function! s:getTransformedLines(listOfLines)
+    let transforms = {}
+    if exists("g:vim_pbcopy_regex_transforms")
+        let transforms = g:vim_pbcopy_regex_transforms
+    endif
+
+    for key in keys(transforms)
+        " echom "match expression: " . key . ", regex transform: " . transforms[key]
+    endfor
+    return a:listOfLines
+endfunction
+
 function! s:getShellEscapedLines(listOfLines)
     " Join the lines with the literal characters '\n' (two chars) so that
     " they will be echo-ed correctly. Passing a non-zero second argument to
@@ -97,6 +127,17 @@ function! s:copyVisualSelection(type, ...)
     endif
 
     let lines = split(@@, "\n")
+
+    " -- " Transform individual lines
+    " -- let i = 0
+    " -- while i < len(lines)
+    " --     let lines[i] = s:getTransformedLine(lines[i])
+    " --     let i = i + 1
+    " -- endwhile
+
+    " -- " Transform entire list of lines
+    " -- let transformedLines = s:getTransformedLines(lines)
+
     let escapedLines = s:getShellEscapedLines(lines)
     let error =  s:sendTextToPbCopy(escapedLines)
 
