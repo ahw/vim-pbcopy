@@ -23,7 +23,7 @@ Local Usage
 -----------
 Use `cy{motion}` to copy text to the Mac OSX system clipboard or hit `cy`
 after selecting text in Visual mode. In the background it is simply running
-running 
+running
 
 ```sh
 echo -n "whatever text you copied" | pbcopy
@@ -40,6 +40,29 @@ You can configure the local pbcopy command in your `~/.vimrc` file:
 
 Remote Usage
 ------------
+### Option 1: Port Forwarding + Clipper
+
+> Clipper is an OS X 'launch agent' that runs in the background providing a
+> service that exposes the local clipboard to tmux sessions and other
+> processes running both locally and remotely. ... We can use it from any
+> process, including Vim
+>
+> Source: https://github.com/wincent/clipper/blob/master/README.md
+
+Clipper listens for tcp data on a select localhost port, and puts all
+input it receipes on the system clipboard. This is useful for both local and
+remote use. Locally, using clipper rather than `pbcopy` circumvents known
+problems with `pbcopy` and `tmux`. Remotely, you can forward a remote port
+to the local clipper's port via an ssh reverse tunnel.
+
+Clipper can be configured in a variety of ways. Here's what's worked for me.
+
+1. `brew install clipper` (install Clipper)
+2. `brew services start clipper` (start the Clipper daemon)
+3. `ssh -R 8377 my.remote.host` (set up SSH remote port forwarding)
+4. Add the following to `~/.vimrc` on the **remote host**: `let g:vim_pbcopy_remote_cmd = "nc localhost 8377"`
+
+### Option 2: Direct SSH Access to Local Host
 Nothing changes except you need to set the Vim global variable
 `g:vim_pbcopy_remote_cmd` variable in your `~/.vimrc` file to your preferred
 way of running pbcopy on your local machine.
@@ -60,7 +83,7 @@ This assumes that you have an SSH server running on your laptop, of course.
 Note: I haven't tested this using password-based SSH logins (my
 configuration uses SSH keys).
 
-See section `Related Projects` below for other remote usage possiblities. 
+See **Option #1** above for other remote usage possiblities.
 
 Troubleshooting
 ---------------
@@ -77,46 +100,3 @@ If you copied this          | and pasted this               | add this to ~/.vim
 console.log('some\nthing'); | console.log('some\nthing');   | Nothing! It Just Works&trade;
 console.log('some\nthing'); | console.log('some<br>thing'); | `let g:vim_pbcopy_escape_backslashes = 1`
 console.log('some\nthing'); | console.log('some\\\nthing'); | `let g:vim_pbcopy_escape_backslashes = 0`
-
-
-Related Projects
-================
-
-### [clipper](https://github.com/wincent/clipper)
-
-> Clipper is an OS X 'launch agent' that runs in the background providing a
-> service that exposes the local clipboard to tmux sessions and other
-> processes running both locally and remotely. ... We can use it from any
-> process, including Vim
->
-> Source: https://github.com/wincent/clipper/blob/master/README.md
-
-Clipper listens for tcp data on a select localhost port, and puts all
-input it receipes on the system clipboard. This is useful for both local and
-remote use. Locally, using clipper rather than `pbcopy` circumvents known
-problems with `pbcopy` and `tmux`. Remotely, you can forward a remote port
-to the local clipper's port via an ssh reverse tunnel. 
-
-To user Clipper, first set up a reverse tunnel in your `~/.ssh/config`:
-
-> **~/.ssh/config**
->
-> ```
-> Host my.remote.host
->   RemoteForward 8377 localhost:8377
-> ```
-
-Alternatively, ssh with `-R`:
-
-```sh
-$ ssh -R 8377 my.remote.host
-```
-
-Then pipe Vim's selection to localhost:8377:
-
-> **~/.vimrc**
->
-> ```vim
-> let g:vim_pbcopy_local_cmd = "cat > /dev/tcp/localhost/8377"
-> let g:vim_pbcopy_remote_cmd = "cat > /dev/tcp/localhost/8377"
-> ```
