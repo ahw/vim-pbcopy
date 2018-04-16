@@ -59,8 +59,8 @@ Clipper can be configured in a variety of ways. Here's what's worked for me.
 
 1. `brew install clipper` (install Clipper)
 2. `brew services start clipper` (start the Clipper daemon)
-3. `ssh -R 8377 my.remote.host` (set up SSH remote port forwarding)
-4. Add the following to `~/.vimrc` on the **remote host**: `let g:vim_pbcopy_remote_cmd = "nc localhost 8377"`
+3. `ssh -R 8377:localhost:8377 my.remote.host` (set up SSH remote port forwarding)
+4. Add the following to `~/.vimrc` on the **remote host**: `let g:vim_pbcopy_remote_cmd = "nc localhost 8377"`. If for some reason things still aren't working, you can debug Clipper in isolation by running `echo "hello from local machine" | nc localhost 8377` on your local machine, and you can debug the port forwarding setup by  running `echo "hello from remote machine" | nc localhost 8377` from the remote machine.
 
 ### Option 2: Direct SSH Access to Local Host
 Nothing changes except you need to set the Vim global variable
